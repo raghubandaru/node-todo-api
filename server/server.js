@@ -86,6 +86,21 @@ app.patch('/todos/:id', (req, res) => {
     }).catch((err) => res.status(400).send());
 });
 
+app.post('/users', (req, res) => {
+    // picking from user input
+    var body = _.pick(req.body, ['email', 'password', 'tokens']);
+    // create user
+    var user = new User(body);
+    // save user to database and handle errors if any
+    user.save().then(() => {
+        // res.send(u);
+        return user.generateAuthToken();
+    }).then((token) => {
+        // x-auth for custom tokens which are not detected by http by default
+        res.header('x-auth', token).send(user);
+    }).catch((err) => res.status(400).send(err));
+});
+
 app.listen(port, () => {
     console.log(`Server is up and running on ${port}`);
 });
