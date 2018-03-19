@@ -7,6 +7,7 @@ const { ObjectID } = require('mongodb');
 var { mongoose } = require('./db/mongoose');
 var { Todo } = require('./models/todo');
 var { User } = require('./models/user');
+var { authenticate } = require('./middleware/authenticate');
 
 var app = express();
 const port = process.env.PORT || 3000;
@@ -99,6 +100,12 @@ app.post('/users', (req, res) => {
         // x-auth for custom tokens which are not detected by http by default
         res.header('x-auth', token).send(user);
     }).catch((err) => res.status(400).send(err));
+});
+
+// private route
+app.get('/users/me', authenticate, (req, res) => {
+    console.log(req.user);
+    res.send(req.user);
 });
 
 app.listen(port, () => {
