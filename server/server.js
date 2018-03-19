@@ -104,7 +104,6 @@ app.post('/users', (req, res) => {
 
 // private route
 app.get('/users/me', authenticate, (req, res) => {
-    console.log(req.user);
     res.send(req.user);
 });
 
