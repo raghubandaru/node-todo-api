@@ -260,3 +260,53 @@ describe('POST /users', () => {
             .end(done);
     }); 
 });
+
+describe('POST /users/login', () => {
+    it('should login user and return auth token', (done) => {
+        var email = users[0].email;
+        var password = users[0].password;
+
+        request(app)
+            .post('/users/login')
+            .send({email, password})
+            .expect(200)
+            .expect((res) => {
+                expect(res.headers['x-auth']).toExist();
+                expect(res.body.email).toBe(email);
+            })
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+
+                User.findById(users[0]._id).then((user) => {
+                    expect(user.tokens[1]).toInclude({
+                        access: 'auth',
+                        token: res.headers['x-auth']
+                    });
+                    done();
+                }).catch((err) => done(err));
+            });
+    });
+
+    it('should reject invalid login', (done) => {
+        request(app)
+            .post('/users/login')
+            .send({email: 'rag@example.com', password: 'abcde'})
+            .expect(400)
+            .expect((res) => {
+                expect(res.headers['x-auth']).toNotExist();
+                expect(res.body).toEqual({});
+            })
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+
+                User.findById(users[0]._id).then((user) => {
+                    expect(user.tokens.length).toBe(1);
+                    done();
+                }).catch((err) => done(err));
+            });
+    });
+});
